@@ -64,7 +64,7 @@ public class GroupProfil extends AppCompatActivity {
 
 
         firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-        recyclerView = findViewById(R.id.anggotalist);
+        recyclerView = findViewById(R.id.anggotalistGP);
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(new LinearLayoutManager(GroupProfil.this));
 

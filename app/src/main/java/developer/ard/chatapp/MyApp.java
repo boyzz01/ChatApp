@@ -18,18 +18,23 @@ public class MyApp extends Application {
         FirebaseDatabase.getInstance().setPersistenceEnabled(true);
 
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("Users").child(firebaseAuth.getCurrentUser().getUid());
 
-        databaseReference.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                level = dataSnapshot.child("level").getValue().toString();
-            }
+        if (firebaseAuth.getCurrentUser()!=null)
+        {
+            DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("Users").child(firebaseAuth.getCurrentUser().getUid());
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
+            databaseReference.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    level = dataSnapshot.child("level").getValue().toString();
+                }
 
-            }
-        });
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+        }
+
     }
 }
