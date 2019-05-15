@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/message_single_layoutr"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_alignParentStart="false"
+    android:layout_alignParentLeft="false"
+    android:layout_alignParentTop="false"
+    android:layout_alignParentEnd="false"
+    android:layout_alignParentRight="false"
+    android:layout_alignParentBottom="false"
+    android:weightSum="10">
+
+
+    <TextView
+        android:id="@+id/bacaGambar"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:fontFamily="@font/asap"
+        android:paddingRight="5dp"
+        android:text="baca"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/waktuGambar"
+        app:layout_constraintStart_toEndOf="@+id/gambarChat" />
+
+    <ImageButton
+        android:id="@+id/downloadBtn"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:background="@null"
+        android:scaleType="fitCenter"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="@+id/message"
+        app:layout_constraintStart_toEndOf="@+id/message"
+        app:layout_constraintTop_toTopOf="@+id/message"
+        app:srcCompat="@drawable/download" />
+
+    <TextView
+        android:id="@+id/ukuranFile"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:text="1MB"
+        android:textAlignment="center"
+        android:textSize="8sp"
+        app:layout_constraintEnd_toEndOf="@+id/downloadBtn"
+        app:layout_constraintStart_toStartOf="@+id/downloadBtn"
+        app:layout_constraintTop_toBottomOf="@+id/downloadBtn" />
+
+    <TextView
+        android:id="@+id/baca"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginEnd="4dp"
+        android:fontFamily="@font/asap"
+        android:paddingRight="5dp"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/waktu"
+        app:layout_constraintEnd_toStartOf="@+id/message" />
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/profil"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_alignWithParentIfMissing="false"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="4dp"
+        android:layout_weight="0"
+        android:src="@drawable/usera"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignWithParentIfMissing="false"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="2dp"
+        android:background="@drawable/rounded_corner"
+        android:clickable="true"
+        android:maxWidth="200dp"
+        android:padding="10dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:text="haloo"
+        android:textColor="#444444"
+        android:textIsSelectable="true"
+        android:textSize="16sp"
+        app:layout_constraintStart_toEndOf="@+id/profil"
+        app:layout_constraintTop_toBottomOf="@+id/namaGrup" />
+
+    <com.apg.mobile.roundtextview.RoundTextView
+        android:id="@+id/waktu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:text="00:00"
+        android:textSize="12sp"
+        android:textStyle="bold|italic"
+        app:layout_constraintBottom_toBottomOf="@+id/message"
+        app:layout_constraintStart_toEndOf="@+id/downloadBtn" />
+
+    <ImageView
+        android:id="@+id/gambarChat"
+        android:layout_width="200dp"
+        android:layout_height="300dp"
+        android:maxWidth="200dp"
+        android:maxHeight="300dp"
+        android:visibility="gone"
+        app:layout_constraintStart_toStartOf="@+id/message"
+        app:layout_constraintTop_toTopOf="@+id/message"
+        app:srcCompat="@drawable/usera" />
+
+    <com.apg.mobile.roundtextview.RoundTextView
+        android:id="@+id/waktuGambar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="8dp"
+        android:gravity="center"
+        android:text="00:00"
+        android:textSize="12sp"
+        android:textStyle="bold|italic"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/gambarChat"
+        app:layout_constraintStart_toEndOf="@+id/gambarChat" />
+
+    <TextView
+        android:id="@+id/namaGrup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="nama"
+        android:textSize="8sp"
+        app:layout_constraintStart_toStartOf="@+id/waktuGambar"
+        app:layout_constraintTop_toTopOf="@+id/profil" />
+
+
+</android.support.constraint.ConstraintLayout>
+
