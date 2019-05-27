@@ -126,10 +126,10 @@
         android:adjustViewBounds="true"
         android:maxWidth="200dp"
         android:maxHeight="300dp"
-        android:scaleType="fitXY"
         android:visibility="visible"
         app:layout_constraintEnd_toEndOf="@+id/message"
-        app:layout_constraintTop_toTopOf="@+id/message" />
+        app:layout_constraintTop_toTopOf="@+id/message"
+        app:srcCompat="@android:drawable/ic_menu_camera" />
 
     <TextView
         android:id="@+id/ukuranFile"

@@ -43,6 +43,7 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import developer.ard.chatapp.LihatGambar;
 import developer.ard.chatapp.R;
 import developer.ard.chatapp.UserProfil;
 import developer.ard.chatapp.model.Pesan;
@@ -57,6 +58,7 @@ public class PesanGrupAdapter extends RecyclerView.Adapter < PesanGrupAdapter.Vi
     private List<PesanGrup> pesans;
     public CircleImageView profile_image;
     private String imageurl;
+    FirebaseAuth firebaseAuth;
     private String nama;
     DatabaseReference user;
 
@@ -141,7 +143,8 @@ public class PesanGrupAdapter extends RecyclerView.Adapter < PesanGrupAdapter.Vi
         {
             holder.waktu.setVisibility(View.VISIBLE);
             holder.lihat_pesan.setVisibility(View.VISIBLE);
-            holder.txt_seen.setVisibility(View.VISIBLE);
+
+
 
             holder.downloadFile.setVisibility(View.GONE);
             holder.ukuranFile.setVisibility(View.GONE);
@@ -149,7 +152,7 @@ public class PesanGrupAdapter extends RecyclerView.Adapter < PesanGrupAdapter.Vi
 
             holder.pesanGambar.setVisibility(View.GONE);
             holder.waktuGambar.setVisibility(View.GONE);
-            holder.bacaGambar.setVisibility(View.GONE);
+
 
 
             holder.waktu.setText(new SimpleDateFormat("HH:mm").format(pesan.getWaktu()));
@@ -202,7 +205,7 @@ public class PesanGrupAdapter extends RecyclerView.Adapter < PesanGrupAdapter.Vi
             final String url = pesan.getPesan();
             holder.waktu.setVisibility(View.GONE);
             holder.lihat_pesan.setVisibility(View.GONE);
-            holder.txt_seen.setVisibility(View.GONE);
+
 
             holder.downloadFile.setVisibility(View.GONE);
             holder.ukuranFile.setVisibility(View.GONE);
@@ -211,10 +214,11 @@ public class PesanGrupAdapter extends RecyclerView.Adapter < PesanGrupAdapter.Vi
 
             holder.pesanGambar.setVisibility(View.VISIBLE);
             holder.waktuGambar.setVisibility(View.VISIBLE);
-            holder.bacaGambar.setVisibility(View.VISIBLE);
+
+
 
             holder.waktuGambar.setText(new SimpleDateFormat("HH:mm").format(pesan.getWaktu()));
-            Picasso.with(context).load(url).networkPolicy(NetworkPolicy.OFFLINE).priority(Picasso.Priority.HIGH).placeholder(R.drawable.usera).rotate(90).into(holder.pesanGambar, new Callback() {
+            Picasso.with(context).load(url).resize(300,1000).centerInside().networkPolicy(NetworkPolicy.OFFLINE).priority(Picasso.Priority.HIGH).placeholder(android.R.drawable.ic_menu_camera).rotate(90).into(holder.pesanGambar, new Callback() {
                 @Override
                 public void onSuccess() {
 
@@ -222,7 +226,15 @@ public class PesanGrupAdapter extends RecyclerView.Adapter < PesanGrupAdapter.Vi
 
                 @Override
                 public void onError() {
-                    Picasso.with(context).load(url).placeholder(R.drawable.usera).rotate(90).into(holder.pesanGambar);
+                    Picasso.with(context).load(url).resize(300,1000).centerInside().placeholder(android.R.drawable.ic_menu_camera).rotate(90).into(holder.pesanGambar);
+                }
+            });
+            holder.pesanGambar.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(context,LihatGambar.class);
+                    intent.putExtra("url",url);
+                    context.startActivity(intent);
                 }
             });
 
@@ -230,16 +242,17 @@ public class PesanGrupAdapter extends RecyclerView.Adapter < PesanGrupAdapter.Vi
             holder.pesanGambar.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View view) {
-                    final CharSequence options[] = new CharSequence[]{"Download Gambar","Hapus Gambar"};
+                    firebaseAuth = FirebaseAuth.getInstance();
+                    if (pesan.getPengirim().equals(firebaseAuth.getCurrentUser().getUid().toString())) {
+                        final CharSequence options[] = new CharSequence[]{"Download Gambar", "Hapus Gambar"};
+                        final AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
-                    final AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                        builder.setTitle("Select Options");
+                        builder.setItems(options, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, final int i) {
 
-                    builder.setTitle("Select Options");
-                    builder.setItems(options, new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, final int i) {
-
-                            //Click Event for each item.
+                                //Click Event for each item.
 
 
 //                            if(i == 0){
@@ -250,40 +263,89 @@ public class PesanGrupAdapter extends RecyclerView.Adapter < PesanGrupAdapter.Vi
 //
 //                            }
 
-                            if(i == 0){
+                                if(i == 0){
 
-                                Bitmap bm=((BitmapDrawable)holder.pesanGambar.getDrawable()).getBitmap();
-                                saveImageFile(bm);
-                                Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-                                //change mCurrentPhotoPath for your imagepath
-                                File f = new File(Environment.getExternalStorageDirectory()
-                                        .getPath(), "Chat App");
-                                Uri contentUri = Uri.fromFile(f);
-                                mediaScanIntent.setData(contentUri);
-                                context.sendBroadcast(mediaScanIntent);
+                                    Bitmap bm=((BitmapDrawable)holder.pesanGambar.getDrawable()).getBitmap();
+                                    saveImageFile(bm);
+                                    Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+                                    //change mCurrentPhotoPath for your imagepath
+                                    File f = new File(Environment.getExternalStorageDirectory()
+                                            .getPath(), "Chat App");
+                                    Uri contentUri = Uri.fromFile(f);
+                                    mediaScanIntent.setData(contentUri);
+                                    context.sendBroadcast(mediaScanIntent);
 
-                                Toast.makeText(context,"Download Berhasil",Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(context,"Download Berhasil Folder Chat App",Toast.LENGTH_SHORT).show();
+
+                                }
+
+                                if (i==1)
+                                {
+                                    Log.d("path"," "+pesan.getId()+" "+pesan.getPushid());
+
+                                    DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("Chats").child(pesan.getId()).child(pesan.getPushid());
+
+                                    databaseReference.removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            notifyDataSetChanged();
+                                        }
+                                    });
+                                }
+
+
 
                             }
-                            if (i==1)
-                            {
-                                Log.d("path"," "+pesan.getId()+" "+pesan.getPushid());
+                        });
 
-                                DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference().child("GroupChats").child(pesan.getId()).child(pesan.getPushid());
+                        builder.show();
+                    }
+                    else
+                    {
+                        final CharSequence options[] = new CharSequence[]{"Download Gambar"};
+                        final AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
-                                databaseReference.removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        notifyDataSetChanged();
-                                    }
-                                });
+                        builder.setTitle("Select Options");
+                        builder.setItems(options, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, final int i) {
+
+                                //Click Event for each item.
+
+
+//                            if(i == 0){
+//
+//                                Intent intent = new Intent(v.getContext(), zoom.class);
+//                                intent.putExtra("image", c.getMessage());
+//                                v.getContext().startActivity(intent);
+//
+//                            }
+
+                                if(i == 0){
+
+                                    Bitmap bm=((BitmapDrawable)holder.pesanGambar.getDrawable()).getBitmap();
+                                    saveImageFile(bm);
+                                    Intent mediaScanIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
+                                    //change mCurrentPhotoPath for your imagepath
+                                    File f = new File(Environment.getExternalStorageDirectory()
+                                            .getPath(), "Chat App");
+                                    Uri contentUri = Uri.fromFile(f);
+                                    mediaScanIntent.setData(contentUri);
+                                    context.sendBroadcast(mediaScanIntent);
+
+                                    Toast.makeText(context,"Download Berhasil Folder Chat App",Toast.LENGTH_SHORT).show();
+
+                                }
+
+
+
+
+
                             }
+                        });
 
-
-                        }
-                    });
-
-                    builder.show();
+                        builder.show();
+                    }
 
                     return false;
                 }
@@ -299,7 +361,7 @@ public class PesanGrupAdapter extends RecyclerView.Adapter < PesanGrupAdapter.Vi
 
             holder.waktu.setVisibility(View.VISIBLE);
             holder.lihat_pesan.setVisibility(View.VISIBLE);
-            holder.txt_seen.setVisibility(View.VISIBLE);
+
 
             holder.downloadFile.setVisibility(View.VISIBLE);
             holder.ukuranFile.setVisibility(View.VISIBLE);
@@ -307,7 +369,7 @@ public class PesanGrupAdapter extends RecyclerView.Adapter < PesanGrupAdapter.Vi
 
             holder.pesanGambar.setVisibility(View.GONE);
             holder.waktuGambar.setVisibility(View.GONE);
-            holder.bacaGambar.setVisibility(View.GONE);
+
 
             holder.waktu.setText(new SimpleDateFormat("HH:mm").format(pesan.getWaktu()));
             holder.lihat_pesan.setText(namafile);
@@ -425,8 +487,9 @@ public class PesanGrupAdapter extends RecyclerView.Adapter < PesanGrupAdapter.Vi
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         public TextView lihat_pesan;
-        public TextView waktu,waktuGambar,bacaGambar;
-        public TextView txt_seen;
+        public TextView waktu,waktuGambar;
+
+
         public TextView ukuranFile;
         public ImageButton downloadFile;
         public ImageView pesanGambar;
@@ -443,9 +506,8 @@ public class PesanGrupAdapter extends RecyclerView.Adapter < PesanGrupAdapter.Vi
             waktu = itemView.findViewById(R.id.waktu);
             lihat_pesan = itemView.findViewById(R.id.message);
             profile_image = itemView.findViewById(R.id.profil);
-            txt_seen = itemView.findViewById(R.id.baca);
+
             waktuGambar = itemView.findViewById(R.id.waktuGambar);
-            bacaGambar = itemView.findViewById(R.id.bacaGambar);
             namaGrup = itemView.findViewById(R.id.namaGrup);
 
 

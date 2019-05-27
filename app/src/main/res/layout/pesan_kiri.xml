@@ -115,14 +115,16 @@
 
     <ImageView
         android:id="@+id/gambarChat"
-        android:layout_width="200dp"
-        android:layout_height="300dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:maxWidth="200dp"
         android:maxHeight="300dp"
-        android:visibility="visible"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="@+id/message"
         app:layout_constraintTop_toTopOf="@+id/message"
-        app:srcCompat="@drawable/usera" />
+        app:srcCompat="@android:drawable/ic_menu_camera" />
 
     <com.apg.mobile.roundtextview.RoundTextView
         android:id="@+id/waktuGambar"

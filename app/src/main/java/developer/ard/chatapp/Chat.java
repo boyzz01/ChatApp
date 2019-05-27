@@ -56,6 +56,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -98,6 +99,8 @@ public class Chat extends AppCompatActivity {
     private String IdPenerima;
     private String IdPengirim,namaPengirim;
     private String idpesan;
+
+    String currentPhotoPath;
 
 
     private static final int REQUEST_CAMERA = 1;
@@ -217,9 +220,23 @@ public class Chat extends AppCompatActivity {
                         if (i == 0) {
                             try {
                                  Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                                if (takePictureIntent.resolveActivity(Chat.this.getPackageManager()) != null) {
+                                if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
 
-                                    startActivityForResult(takePictureIntent, REQUEST_CAMERA);
+                                    File photoFile = null;
+                                    try {
+                                        photoFile = createImageFile();
+                                    } catch (IOException ex) {
+                                        // Error occurred while creating the File
+                                    }
+                                    // Continue only if the File was successfully created
+                                    if (photoFile != null) {
+                                        Uri photoURI = FileProvider.getUriForFile(Chat.this,
+                                                "com.example.android.fileprovider",
+                                                photoFile);
+                                        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                                        startActivityForResult(takePictureIntent, REQUEST_CAMERA);
+
+                                    }
                                 }
                             } catch (android.content.ActivityNotFoundException ex) {
                                 Toast.makeText(Chat.this, "Gagal Membuka Kamera", Toast.LENGTH_SHORT).show();
@@ -313,8 +330,24 @@ public class Chat extends AppCompatActivity {
     }
 
 
+    private File createImageFile() throws IOException {
 
-    private void seen(final String userid, String idpesan) {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        currentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
+        private void seen(final String userid, String idpesan) {
         Log.d("tes1", "" + idpesan);
         reference = FirebaseDatabase.getInstance().getReference("Chats").child(idpesan);
         seenListener = reference.addValueEventListener(new ValueEventListener() {
@@ -455,60 +488,23 @@ public class Chat extends AppCompatActivity {
 
     private void bacaPesan(final String myid, final String userid, final String imageurl, final String nama) {
         pesanList = new ArrayList<>();
-
         String idpesan;
 
+        RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();
+        if (animator instanceof SimpleItemAnimator) {
+            ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
+        }
         if (myid.compareTo(userid) < 0) {
             idpesan = myid + userid;
         } else {
             idpesan = userid + myid;
         }
+
+
+
         Log.d("tes", "" + idpesan);
         reference = FirebaseDatabase.getInstance().getReference("Chats").child(idpesan);
         reference.keepSynced(true);
-//        reference.addChildEventListener(new ChildEventListener() {
-//            @Override
-//            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-//                Pesan pesan = dataSnapshot.getValue(Pesan.class);
-//                pesanList.add(pesan);
-//
-//
-//                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-//                    Pesan pesan = snapshot.getValue(Pesan.class);
-//                    if (pesan.getPenerima().equals(myid) && pesan.getPengirim().equals(userid) || pesan.getPenerima().equals(userid) && pesan.getPengirim().equals(myid)) {
-//                        pesanList.add(pesan);
-//                    }
-//
-//                    pesanAdapter = new PesanAdapter(Chat.this, pesanList, imageurl, nama, userid);
-//                    recyclerView.setAdapter(pesanAdapter);
-//                }
-//            }
-//
-//            @Override
-//            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-//
-//            }
-//
-//            @Override
-//            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-//
-//            }
-//
-//            @Override
-//            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
-//
-//            }
-//
-//            @Override
-//            public void onCancelled(@NonNull DatabaseError databaseError) {
-//
-//            }
-//        });
-        RecyclerView.ItemAnimator animator = recyclerView.getItemAnimator();
-        if (animator instanceof SimpleItemAnimator) {
-            ((SimpleItemAnimator) animator).setSupportsChangeAnimations(false);
-        }
-
 
         reference.addValueEventListener(new ValueEventListener() {
             @Override
@@ -523,6 +519,7 @@ public class Chat extends AppCompatActivity {
                     pesanAdapter = new PesanAdapter(Chat.this, pesanList, imageurl, nama,userid);
 
                     recyclerView.setAdapter(pesanAdapter);
+                    pesanAdapter.notifyDataSetChanged();
 
 
 
@@ -563,21 +560,28 @@ public class Chat extends AppCompatActivity {
             case 1: {
                 if (resultCode == RESULT_OK) {
 
-                    if (data != null && data.getExtras() != null) {
-                        Bitmap imageBitmap = (Bitmap) data.getExtras().get("data");
+
+                    File file = new File(currentPhotoPath);
+                    Bitmap bitmap = null;
+                    try {
+                        bitmap = MediaStore.Images.Media.getBitmap(Chat.this.getContentResolver(), Uri.fromFile(file));
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
 
-                    File file = new File(Environment.getExternalStorageDirectory()
-                            .getPath(), "Chat App");
+                    if (bitmap != null) {
 
-                    uriString = (file.getAbsolutePath() + "/"
-                            + System.currentTimeMillis() + ".jpg");
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 20, baos);
+                        byte[] thumb_byte = baos.toByteArray();
 
-//                                    Uri uri  = Uri.parse(uriString);
+                        pushFoto(thumb_byte);
+
+                    }
 
 
                 }
-                Log.d("foto","notok");
+
             }
             break;
             case 2: {
@@ -594,7 +598,7 @@ public class Chat extends AppCompatActivity {
                         e.printStackTrace();
                     }
                     ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                    bmp.compress(Bitmap.CompressFormat.JPEG, 25, baos);
+                    bmp.compress(Bitmap.CompressFormat.JPEG, 20, baos);
                     byte[] thumb_byte = baos.toByteArray();
 
                     pushFoto(thumb_byte);
@@ -704,56 +708,7 @@ public class Chat extends AppCompatActivity {
 
     }
 
-    void push(Uri imageUri) {
 
-
-        final DatabaseReference user_message_push = FirebaseDatabase.getInstance().getReference().child("Chats").child(idpesan);
-
-        user_message_push.keepSynced(false);
-
-        final String push_id = user_message_push.push().getKey();
-
-        final StorageReference filepath = FirebaseStorage.getInstance().getReference().child("message_images").child(push_id + ".jpg");
-
-        filepath.putFile(imageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
-                if (task.isSuccessful()) {
-
-
-                    filepath.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
-                        @Override
-                        public void onSuccess(Uri uri) {
-                            HashMap<String, Object> hashMap = new HashMap<>();
-                            hashMap.put("pengirim", IdPengirim);
-                            hashMap.put("penerima", IdPenerima);
-                            hashMap.put("id,",idpesan);
-                            hashMap.put("pushid",push_id);
-                            hashMap.put("pesan", uri.toString());
-                            hashMap.put("type", "image");
-                            hashMap.put("waktu", ServerValue.TIMESTAMP);
-                            hashMap.put("seen", false);
-                            user_message_push.child(push_id).setValue(hashMap).addOnSuccessListener(new OnSuccessListener<Void>() {
-                                @Override
-                                public void onSuccess(Void aVoid) {
-                                    sendNotification(IdPengirim, namaPengirim, "Foto");
-                                    Toast.makeText(Chat.this, "Berhasil Upload", Toast.LENGTH_SHORT).show();
-
-                                }
-                            });
-
-                            pesan_text.setText("");
-                        }
-                    });
-
-
-
-                }
-            }
-        });
-
-
-    }
 
     void pushFoto(byte[] file){
         final DatabaseReference user_message_push = FirebaseDatabase.getInstance().getReference().child("Chats").child(idpesan);
@@ -802,4 +757,6 @@ public class Chat extends AppCompatActivity {
 
 
     }
+
+
 }

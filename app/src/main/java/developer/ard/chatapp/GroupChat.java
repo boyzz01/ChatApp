@@ -11,6 +11,7 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.support.annotation.NonNull;
+import android.support.v4.content.FileProvider;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -47,7 +48,9 @@ import com.squareup.picasso.Picasso;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -92,6 +95,7 @@ public class GroupChat extends AppCompatActivity {
     private String IdPengirim,namaPengirim;
 
 
+    String currentPhotoPath;
 
     private static final int REQUEST_CAMERA = 1;
     private static final int SELECT_FILE = 2;
@@ -253,20 +257,26 @@ public class GroupChat extends AppCompatActivity {
 
 
                         if (i == 0) {
-                            try {
-                                Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-                                if (takePictureIntent.resolveActivity(GroupChat.this.getPackageManager()) != null) {
+                            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
 
-
-//                                    takePictureIntent.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, uri);
-                                    startActivityForResult(takePictureIntent, REQUEST_CAMERA);
+                                File photoFile = null;
+                                try {
+                                    photoFile = createImageFile();
+                                } catch (IOException ex) {
+                                    // Error occurred while creating the File
                                 }
-                            } catch (android.content.ActivityNotFoundException ex) {
-                                Toast.makeText(GroupChat.this, "Gagal Membuka Kamera", Toast.LENGTH_SHORT).show();
-                            }
+                                // Continue only if the File was successfully created
+                                if (photoFile != null) {
+                                    Uri photoURI = FileProvider.getUriForFile(GroupChat.this,
+                                            "com.example.android.fileprovider",
+                                            photoFile);
+                                    takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                                    startActivityForResult(takePictureIntent, REQUEST_CAMERA);
 
 
-                        }
+                                }
+                            }}
 
                         if (i == 1) {
 
@@ -310,6 +320,26 @@ public class GroupChat extends AppCompatActivity {
 
 
     }
+
+    private File createImageFile() throws IOException {
+
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Save a file: path for use with ACTION_VIEW intents
+        currentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
+
+
     private void kirimPesan(String pengirim, final String idGrup, final String pesan, boolean seen) {
 
 
@@ -460,21 +490,28 @@ public class GroupChat extends AppCompatActivity {
             case 1: {
                 if (resultCode == RESULT_OK) {
 
-                    if (data != null && data.getExtras() != null) {
-                        Bitmap imageBitmap = (Bitmap) data.getExtras().get("data");
+
+                    File file = new File(currentPhotoPath);
+                    Bitmap bitmap = null;
+                    try {
+                        bitmap = MediaStore.Images.Media.getBitmap(GroupChat.this.getContentResolver(), Uri.fromFile(file));
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
 
-                    File file = new File(Environment.getExternalStorageDirectory()
-                            .getPath(), "Chat App");
+                    if (bitmap != null) {
 
-                    uriString = (file.getAbsolutePath() + "/"
-                            + System.currentTimeMillis() + ".jpg");
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        bitmap.compress(Bitmap.CompressFormat.JPEG, 20, baos);
+                        byte[] thumb_byte = baos.toByteArray();
 
-//                                    Uri uri  = Uri.parse(uriString);
+                        pushFoto(thumb_byte);
+
+                    }
 
 
                 }
-                Log.d("foto","notok");
+
             }
             break;
             case 2: {
